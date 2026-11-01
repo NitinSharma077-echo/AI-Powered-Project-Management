@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MeetFlow AI</title>
+    <script>
+      // Apply the saved theme before first paint so there is no flash,
+      // and so it applies on every page, not just ones with a top bar.
+      (function () {
+        try {
+          var saved = localStorage.getItem("meetflow_theme");
+          if (saved === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+          }
+        } catch (e) {
+          // Storage blocked - fall back to the default light theme.
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
