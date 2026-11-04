@@ -19,6 +19,13 @@ const { authLimiter, apiLimiter } = require("./middlewares/rateLimit");
 // Create the Express application.
 const app = express();
 
+// Render (and most hosts) terminate TLS at a proxy and pass the caller on
+// in X-Forwarded-For. Without this, req.ip is the proxy's address for every
+// request, so the rate limiters below bucket all users together and the
+// auth limit locks out everyone at once. 1 = trust a single proxy hop;
+// `true` would let a client spoof the header and bypass the limiter.
+app.set("trust proxy", 1);
+
 // Allow requests from our React frontend.
 // CLIENT_URL may list several origins, separated by commas.
 const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
