@@ -28,9 +28,12 @@ app.set("trust proxy", 1);
 
 // Allow requests from our React frontend.
 // CLIENT_URL may list several origins, separated by commas.
+// Browsers send Origin with no trailing slash, so a CLIENT_URL pasted as
+// "https://example.com/" would never match. Normalise instead of making
+// that a deploy-breaking typo.
 const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
   .split(",")
-  .map((value) => value.trim())
+  .map((value) => value.trim().replace(/\/+$/, ""))
   .filter(Boolean);
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -53,7 +56,17 @@ app.use(
         return callback(null, true);
       }
 
-      return callback(new Error(`Blocked by CORS: ${origin}`));
+      // A rejected origin is a configuration mismatch, not a server fault.
+      // Without a statusCode the error handler calls it a 500, which makes
+      // the preflight look like a crash and hides the real cause.
+      console.warn(
+        `Blocked by CORS: ${origin} is not in CLIENT_URL (${allowedOrigins.join(", ")})`
+      );
+
+      const error = new Error(`Origin ${origin} is not allowed`);
+      error.statusCode = 403;
+
+      return callback(error);
     }
   })
 );
