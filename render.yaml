@@ -1,0 +1,78 @@
+# Render Blueprint for MeetFlow AI.
+# Create all three services at once: Render Dashboard -> New -> Blueprint,
+# point it at this repo, and fill in the values marked sync: false.
+services:
+  # ------------------------------------------------------------------
+  # React + Vite frontend (static site)
+  # ------------------------------------------------------------------
+  - type: web
+    name: meetflow-web
+    runtime: static
+    rootDir: web
+    buildCommand: npm ci && npm run build
+    # Vite writes the compiled bundle here. Publishing anything else
+    # serves raw .jsx source, which the browser cannot execute.
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: 22.12.0
+      # Baked into the bundle at BUILD time, so a change needs a redeploy.
+      # Set this to the meetflow-api URL + /api
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      # BrowserRouter needs every unknown path to fall back to index.html,
+      # otherwise a refresh on /login returns 404.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # ------------------------------------------------------------------
+  # Express API
+  # ------------------------------------------------------------------
+  - type: web
+    name: meetflow-api
+    runtime: node
+    rootDir: apis
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.12.0
+      - key: NODE_ENV
+        value: production
+      # Must match the meetflow-web origin exactly, with no trailing slash.
+      - key: CLIENT_URL
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      # Full URL WITH scheme (the code appends /meeting/analyze to it),
+      # e.g. https://meetflow-ai.onrender.com - no trailing slash.
+      - key: AI_SERVICE_URL
+        sync: false
+      - key: AI_SERVICE_TOKEN
+        sync: false
+
+  # ------------------------------------------------------------------
+  # FastAPI AI service
+  # ------------------------------------------------------------------
+  - type: web
+    name: meetflow-ai
+    runtime: python
+    rootDir: ai
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      # Must be IDENTICAL to AI_SERVICE_TOKEN on meetflow-api.
+      - key: AI_SERVICE_TOKEN
+        sync: false
