@@ -1,0 +1,1016 @@
+/* =========================================================
+   Landing page - editorial / "Fuba" direction
+   -------------------------------------------------------
+   Oversized display type carries the page; the product UI
+   itself is the hero image, drifting on scroll and tilting
+   toward the pointer.
+
+   Hover and motion techniques adapted from MIT-licensed
+   Uiverse.io components (github.com/uiverse-io/galaxy):
+     - sweep-fill button           (Buttons, 0xnihilism)
+     - text-swap hover on nav      (Buttons, 3bdel3ziz-T)
+     - blur-bloom behind a panel   (Cards, 05akalan57)
+     - conic running border        (Cards, 0senno)
+   ========================================================= */
+
+.landing {
+  --lp-gutter: clamp(20px, 5vw, 88px);
+  --lp-max: 1440px;
+
+  width: 100%;
+  min-height: 100svh;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: clip;
+}
+
+/* ---------------- Header ---------------- */
+
+.lp-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px var(--lp-gutter);
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--rule);
+}
+
+.lp-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 19px;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--text-h);
+  text-decoration: none;
+}
+
+.lp-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 15px;
+}
+
+.lp-nav {
+  display: flex;
+  gap: 4px;
+}
+
+/* Nav names reveal a filled bar on hover, Fuba-style. */
+.lp-nav-link {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+  padding: 8px 14px;
+  border-radius: var(--r-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text-h);
+  transition: color 280ms var(--ease);
+}
+
+.lp-nav-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--text-h);
+  transform: translateY(101%);
+  transition: transform 340ms var(--ease-out);
+}
+
+.lp-nav-link:hover::before,
+.lp-nav-link:focus-visible::before {
+  transform: translateY(0);
+}
+
+.lp-nav-link:hover,
+.lp-nav-link:focus-visible {
+  color: var(--bg);
+}
+
+.lp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .lp-nav {
+    display: none;
+  }
+}
+
+/* ---------------- Buttons ---------------- */
+
+.lp-btn {
+  position: relative;
+  z-index: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 20px;
+  border: 1px solid var(--text-h);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  font-family: var(--display);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 300ms var(--ease), transform 180ms var(--ease-spring),
+    border-color 200ms var(--ease);
+}
+
+.lp-btn-lg {
+  padding: 16px 30px;
+  font-size: 13.5px;
+}
+
+.lp-btn-solid {
+  background: var(--text-h);
+  color: var(--bg);
+}
+
+/* Sweep fill (Uiverse, 0xnihilism) */
+.lp-btn-solid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  transform: translateY(101%);
+  transition: transform 380ms var(--ease-out);
+}
+
+.lp-btn-solid:hover::before {
+  transform: translateY(0);
+}
+
+.lp-btn-solid:hover {
+  color: var(--on-accent);
+  transform: translateY(-2px);
+}
+
+.lp-btn-ghost {
+  background: transparent;
+  border-color: var(--rule);
+  color: var(--text-h);
+}
+
+.lp-btn-ghost:hover {
+  border-color: var(--text-h);
+  background: var(--accent-bg);
+  transform: translateY(-2px);
+}
+
+.lp-btn:active {
+  transform: translateY(0) scale(0.985);
+}
+
+/* ---------------- Hero ---------------- */
+
+.lp-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(28px, 5vw, 72px);
+  max-width: var(--lp-max);
+  margin: 0 auto;
+  padding: clamp(48px, 8vw, 112px) var(--lp-gutter) clamp(72px, 10vw, 132px);
+  min-height: 86svh;
+}
+
+.lp-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 24px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.lp-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: lp-pulse 2.4s var(--ease) infinite;
+}
+
+@keyframes lp-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.72);
+  }
+}
+
+/* The display headline. Each line is a clipping window so the text
+   can slide up from under its own baseline. */
+.lp-display {
+  margin: 0 0 28px;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(50px, 8.4vw, 132px);
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--text-h);
+}
+
+.lp-line {
+  display: block;
+  overflow: hidden;
+}
+
+.lp-line > span {
+  display: block;
+  transform: translateY(102%);
+  transition: transform 900ms var(--ease-out);
+}
+
+.lp-line.is-in > span {
+  transform: translateY(0);
+}
+
+.lp-display em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.lp-lede {
+  max-width: 46ch;
+  margin: 0 0 34px;
+  font-size: clamp(15px, 1.2vw, 18px);
+  line-height: 1.55;
+}
+
+.lp-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.lp-scroll-cue {
+  position: absolute;
+  left: var(--lp-gutter);
+  bottom: 30px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.lp-scroll-cue::after {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 34px;
+  margin: 10px auto 0;
+  background: linear-gradient(var(--text-h), transparent);
+  animation: lp-cue 2s var(--ease) infinite;
+}
+
+@keyframes lp-cue {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+    opacity: 0.4;
+    transform-origin: top;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+    transform-origin: top;
+  }
+}
+
+/* ---------------- Hero stage: product UI as the image ----------------
+   --sy (scroll px) and --mx/--my (pointer, -1..1) are written by
+   useParallax; all the motion maths stays here in CSS. */
+
+.lp-stage {
+  position: relative;
+  height: clamp(380px, 46vw, 560px);
+  perspective: 1400px;
+  --sy: 0px;
+  --mx: 0;
+  --my: 0;
+}
+
+.lp-panel {
+  position: absolute;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-raised);
+  box-shadow: var(--elev-2);
+  /* Deeper panels drift further, which reads as parallax. */
+  --drift: calc(var(--sy) * -0.035 * var(--depth, 1));
+  transform: translate3d(
+      calc(var(--mx) * 14px * var(--depth, 1)),
+      calc(var(--drift) + var(--my) * 10px * var(--depth, 1)),
+      0
+    )
+    rotateY(calc(var(--mx) * -4deg)) rotateX(calc(var(--my) * 3deg));
+  transition: box-shadow 300ms var(--ease);
+}
+
+.lp-panel[data-depth="1"] {
+  --depth: 1;
+}
+.lp-panel[data-depth="2"] {
+  --depth: 2.1;
+}
+.lp-panel[data-depth="3"] {
+  --depth: 3.2;
+}
+
+.lp-panel-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.lp-panel-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-h);
+}
+
+.lp-chip {
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.lp-chip-accent {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* --- Taskboard panel --- */
+
+.lp-panel-board {
+  top: 2%;
+  left: 0;
+  width: 86%;
+  z-index: 1;
+}
+
+.lp-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 14px;
+}
+
+.lp-col {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.lp-col-head {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.lp-task {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-h);
+}
+
+.lp-task-done {
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  border-left-color: #3f8f5f;
+  color: var(--text);
+  text-decoration: line-through;
+}
+
+.lp-task-tag {
+  align-self: flex-start;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: var(--code-bg);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.lp-tag-high {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.lp-tag-mid {
+  background: rgba(217, 131, 36, 0.14);
+  color: var(--accent-2);
+}
+
+/* --- Chart panel --- */
+
+.lp-panel-chart {
+  right: 0;
+  bottom: 12%;
+  width: 46%;
+  z-index: 3;
+}
+
+.lp-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+  height: 92px;
+  padding: 14px;
+}
+
+.lp-bar {
+  flex: 1;
+  height: var(--h);
+  border-radius: 1px 1px 0 0;
+  background: var(--accent);
+  opacity: 0.22;
+  transform-origin: bottom;
+  animation: lp-bar-grow 900ms var(--ease-out) backwards;
+  animation-delay: calc(var(--i) * 70ms + 400ms);
+}
+
+/* The last bar is the "today" reading, so it stays solid. */
+.lp-bar:last-child {
+  opacity: 1;
+}
+
+@keyframes lp-bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/* --- Action item panel --- */
+
+.lp-panel-item {
+  left: 6%;
+  bottom: 0;
+  width: 50%;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 14px;
+  overflow: hidden;
+}
+
+/* Blur-bloom behind the panel (Uiverse, 05akalan57) */
+.lp-panel-item::before {
+  content: "";
+  position: absolute;
+  width: 70%;
+  aspect-ratio: 1;
+  right: -24%;
+  top: -40%;
+  z-index: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.2;
+  filter: blur(46px);
+  pointer-events: none;
+}
+
+.lp-panel-item > * {
+  position: relative;
+  z-index: 1;
+}
+
+.lp-item-text {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-h);
+}
+
+.lp-item-foot {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.lp-avatar {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-sm);
+  background: var(--text-h);
+  color: var(--bg);
+  font-family: var(--display);
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+/* --- Small floating badge --- */
+
+.lp-panel-meeting {
+  top: 0;
+  right: 4%;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 14px;
+  font-size: 11.5px;
+  color: var(--text);
+}
+
+.lp-panel-meeting strong {
+  color: var(--text-h);
+}
+
+.lp-panel-meeting svg {
+  color: var(--accent);
+}
+
+@media (max-width: 1024px) {
+  .lp-hero {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .lp-stage {
+    height: clamp(330px, 74vw, 470px);
+  }
+
+  .lp-scroll-cue {
+    display: none;
+  }
+}
+
+/* On a phone the collage has no room to overlap, so drop the two
+   smallest panels and let the board fill the stage. */
+@media (max-width: 620px) {
+  .lp-stage {
+    height: 320px;
+  }
+
+  .lp-panel-board {
+    width: 100%;
+    top: 0;
+  }
+
+  .lp-panel-item,
+  .lp-panel-meeting {
+    display: none;
+  }
+
+  .lp-panel-chart {
+    width: 62%;
+    bottom: 0;
+  }
+}
+
+/* ---------------- Marquee ---------------- */
+
+.lp-marquee {
+  overflow: hidden;
+  padding: 16px 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: var(--inv-bg);
+}
+
+.lp-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: lp-scroll 32s linear infinite;
+}
+
+.lp-marquee-group {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.lp-marquee-word {
+  display: inline-flex;
+  align-items: center;
+  gap: 32px;
+  padding-right: 32px;
+  font-family: var(--display);
+  font-size: clamp(22px, 2.6vw, 38px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--inv-fg);
+  white-space: nowrap;
+}
+
+.lp-marquee-star {
+  font-size: 0.5em;
+  color: var(--accent);
+}
+
+@keyframes lp-scroll {
+  to {
+    /* One of the two identical groups, so the loop is seamless. */
+    transform: translateX(-50%);
+  }
+}
+
+.lp-marquee:hover .lp-marquee-track {
+  animation-play-state: paused;
+}
+
+/* ---------------- Sections ---------------- */
+
+.lp-section {
+  max-width: var(--lp-max);
+  margin: 0 auto;
+  padding: clamp(64px, 9vw, 132px) var(--lp-gutter);
+}
+
+.lp-section-dark {
+  max-width: none;
+  background: var(--inv-bg);
+  color: var(--inv-muted);
+}
+
+.lp-section-head {
+  margin-bottom: clamp(36px, 5vw, 64px);
+}
+
+/* The dark band spans the viewport, so its contents need the same
+   measure the constrained sections get for free. */
+.lp-section-dark .lp-section-head {
+  max-width: var(--lp-max);
+  margin-inline: auto;
+}
+
+.lp-kicker {
+  display: block;
+  margin-bottom: 18px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.lp-h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(32px, 5vw, 76px);
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--text-h);
+}
+
+.lp-section-dark .lp-h2 {
+  color: var(--inv-fg);
+}
+
+/* ---------------- Services ---------------- */
+
+.lp-services {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  border-top: 1px solid var(--rule);
+}
+
+.lp-service {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 32px 26px 40px;
+  border-bottom: 1px solid var(--rule);
+  border-right: 1px solid var(--rule);
+  overflow: hidden;
+  transition: color 360ms var(--ease);
+}
+
+.lp-service:first-child {
+  border-left: 1px solid var(--rule);
+}
+
+/* Hover floods the tile from the bottom and inverts the text. */
+.lp-service::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--text-h);
+  transform: translateY(101%);
+  transition: transform 460ms var(--ease-out);
+}
+
+.lp-service:hover::before {
+  transform: translateY(0);
+}
+
+.lp-service:hover,
+.lp-service:hover .lp-service-name,
+.lp-service:hover .lp-service-index {
+  color: var(--bg);
+}
+
+.lp-service:hover .lp-service-icon,
+.lp-service:hover .lp-service-arrow {
+  color: var(--accent-2);
+}
+
+.lp-service:hover .lp-service-arrow {
+  transform: translate(4px, -4px);
+  opacity: 1;
+}
+
+.lp-service-index {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--text);
+  transition: color 360ms var(--ease);
+}
+
+.lp-service-icon {
+  color: var(--accent);
+  transition: color 360ms var(--ease);
+}
+
+.lp-service-name {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--text-h);
+  transition: color 360ms var(--ease);
+}
+
+.lp-service-copy {
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.lp-service-arrow {
+  position: absolute;
+  top: 28px;
+  right: 24px;
+  opacity: 0;
+  color: var(--accent);
+  transition: transform 360ms var(--ease-out), opacity 360ms var(--ease),
+    color 360ms var(--ease);
+}
+
+@media (max-width: 760px) {
+  .lp-service,
+  .lp-service:first-child {
+    border-left: 1px solid var(--rule);
+  }
+}
+
+/* ---------------- Steps ---------------- */
+
+.lp-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--inv-rule);
+  max-width: var(--lp-max);
+  margin-inline: auto;
+}
+
+.lp-step {
+  padding: 34px 28px 44px;
+  background: var(--inv-bg);
+}
+
+.lp-step-num {
+  font-family: var(--display);
+  font-size: 54px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: var(--accent);
+}
+
+.lp-step-label {
+  margin: 14px 0 10px;
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--inv-fg);
+}
+
+.lp-step-copy {
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+/* ---------------- Stats ---------------- */
+
+.lp-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: clamp(24px, 4vw, 56px);
+  border-top: 1px solid var(--rule);
+  padding-top: clamp(28px, 4vw, 48px);
+}
+
+.lp-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lp-stat-value {
+  font-family: var(--display);
+  font-size: clamp(48px, 7vw, 96px);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  color: var(--text-h);
+}
+
+.lp-stat-label {
+  max-width: 22ch;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ---------------- CTA + footer ---------------- */
+
+.lp-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: clamp(72px, 11vw, 152px) var(--lp-gutter);
+  text-align: center;
+  border-top: 1px solid var(--rule);
+}
+
+.lp-cta-head {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(42px, 10vw, 150px);
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  color: var(--text-h);
+}
+
+.lp-cta-copy {
+  max-width: 44ch;
+  font-size: clamp(14px, 1.1vw, 17px);
+  line-height: 1.5;
+}
+
+.lp-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 26px var(--lp-gutter);
+  border-top: 1px solid var(--rule);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lp-footer-brand {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  color: var(--text-h);
+}
+
+.lp-footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.lp-footer-nav a {
+  color: var(--text);
+  text-decoration: none;
+  transition: color 180ms var(--ease);
+}
+
+.lp-footer-nav a:hover {
+  color: var(--accent);
+}
+
+.lp-footer-note {
+  opacity: 0.7;
+}
+
+/* ---------------- Reveal ---------------- */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 760ms var(--ease-out), transform 760ms var(--ease-out);
+}
+
+[data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* The line-clip headline animates its inner span, so the wrapper
+   itself must stay visible and untransformed. */
+.lp-line[data-reveal] {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------------- Reduced motion ---------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-marquee-track,
+  .lp-dot,
+  .lp-scroll-cue::after,
+  .lp-bar {
+    animation: none;
+  }
+
+  .lp-bar {
+    transform: none;
+  }
+
+  [data-reveal],
+  .lp-line > span {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .lp-panel {
+    transform: none;
+  }
+}

@@ -1,0 +1,692 @@
+/* =========================================================
+   Editorial layer - "Fuba" direction
+   -------------------------------------------------------
+   Warm paper palette, oversized display type, flat hairline
+   surfaces and deliberate motion, in place of the previous
+   neon/glass treatment.
+
+   Interaction techniques adapted from MIT-licensed Uiverse.io
+   components (github.com/uiverse-io/galaxy) and rebuilt on
+   this app's design tokens so they respond to the theme
+   instead of hardcoding their own colours:
+     - conic-gradient running border    (Cards, 0senno)
+     - blur-bloom behind an inset panel (Cards, 05akalan57)
+     - bell shake on hover              (Buttons, 3bdel3ziz-T)
+     - sweep-fill button                (Buttons, 0xnihilism)
+   ========================================================= */
+
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* ---------- Palette: warm paper + vermelho/amarelo ---------- */
+
+:root {
+  --text: #6b6355;
+  --text-h: #16130f;
+  --bg: #f2efe6;
+  --border: #ded8c9;
+  --code-bg: #e8e3d6;
+  --accent: #d13d24;
+  --accent-2: #d98324;
+  --accent-bg: rgba(209, 61, 36, 0.08);
+  --accent-border: rgba(209, 61, 36, 0.4);
+  --social-bg: rgba(222, 216, 201, 0.5);
+
+  --surface-raised: #fbf9f4;
+  --glass: rgba(251, 249, 244, 0.82);
+  --hairline: rgba(22, 19, 15, 0.1);
+
+  /* Flatter than the old glass layer: pages sit on the paper
+     rather than floating above it. */
+  --elev-1: 0 1px 2px rgba(22, 19, 15, 0.04);
+  --elev-2: 0 2px 4px rgba(22, 19, 15, 0.04), 0 12px 28px rgba(22, 19, 15, 0.07);
+  --elev-glow: 0 6px 20px rgba(209, 61, 36, 0.22);
+
+  --grad-accent: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+
+  --grain: rgba(22, 19, 15, 0.035);
+  --rule: rgba(22, 19, 15, 0.14);
+
+  /* Inverted bands (marquee, process, auth panel). These must flip as a
+     set, so text stays legible in both themes - a band painted with
+     --text-h and lettered in hardcoded white goes white-on-white in dark
+     mode. */
+  --on-accent: #ffffff;
+  --accent-text: #b3331c;
+  --inv-bg: #16130f;
+  --inv-fg: #f4f1ea;
+  --inv-muted: rgba(244, 241, 234, 0.66);
+  --inv-rule: rgba(244, 241, 234, 0.16);
+
+  /* Editorial corners: nearly square. */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+
+  --display: "Archivo", system-ui, sans-serif;
+  --sans: "Archivo", system-ui, "Segoe UI", sans-serif;
+  --heading: "Archivo", system-ui, "Segoe UI", sans-serif;
+
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --text: #a39b8c;
+  --text-h: #f6f2e8;
+  --bg: #14120e;
+  --border: #322c24;
+  --code-bg: #1e1b16;
+  --accent: #ff6a4d;
+  --accent-2: #f5c168;
+  --accent-bg: rgba(255, 106, 77, 0.14);
+  --accent-border: rgba(255, 106, 77, 0.45);
+  --social-bg: rgba(50, 44, 36, 0.5);
+
+  --surface-raised: #1e1b16;
+  --glass: rgba(20, 18, 14, 0.78);
+  --hairline: rgba(246, 242, 232, 0.09);
+
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.44);
+  --elev-2: 0 6px 16px rgba(0, 0, 0, 0.5), 0 18px 44px rgba(0, 0, 0, 0.38);
+  --elev-glow: 0 8px 28px rgba(255, 106, 77, 0.24);
+
+  --grain: rgba(246, 242, 232, 0.028);
+  --rule: rgba(246, 242, 232, 0.16);
+
+  /* In dark mode the inverted band becomes the light one. */
+  --on-accent: #1a0d08;
+  --accent-text: var(--accent);
+  --inv-bg: #f6f2e8;
+  --inv-fg: #14120e;
+  --inv-muted: rgba(20, 18, 14, 0.68);
+  --inv-rule: rgba(20, 18, 14, 0.18);
+
+  color-scheme: dark;
+}
+
+/* ---------- Display typography ---------- */
+
+h1,
+h2,
+.page-heading,
+.section-heading,
+.auth-heading h2 {
+  font-family: var(--display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+h1 {
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 0.92;
+}
+
+.page-heading {
+  font-size: clamp(30px, 4.4vw, 52px);
+  line-height: 0.95;
+  margin: 0 0 4px;
+}
+
+.section-heading {
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+/* Small caps labels read as editorial captions. */
+.field-label,
+.welcome-label,
+.sidebar-label,
+.breadcrumb,
+.detail-meta,
+.card-footer-meta {
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-weight: 600;
+  font-size: 11.5px;
+}
+
+/* ---------- Paper grain over the whole app ---------- */
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.55;
+  background-image: radial-gradient(var(--grain) 1px, transparent 0);
+  background-size: 3px 3px;
+}
+
+/* ---------- App shell ---------- */
+
+.app-layout,
+.auth-page {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Column rules, masked so they fade out down the page. */
+.app-layout::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image: linear-gradient(90deg, var(--grain) 1px, transparent 1px);
+  background-size: 96px 100%;
+  mask-image: linear-gradient(180deg, #000 0%, transparent 60%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 60%);
+}
+
+.sidebar {
+  background: var(--bg);
+  border-right: 1px solid var(--rule);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.sidebar-brand {
+  font-family: var(--display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.topbar {
+  background: var(--glass);
+  border-bottom: 1px solid var(--rule);
+  box-shadow: none;
+}
+
+.page-content {
+  background: transparent;
+}
+
+/* Retire the old drifting aurora blob. */
+.page-content::before {
+  content: none;
+}
+
+/* ---------- Nav: hover sweep on the name ----------
+   Fuba reveals a filled bar behind each name on hover rather
+   than tinting the text. */
+
+.nav-link {
+  position: relative;
+  border-radius: var(--r-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  font-size: 13px;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.nav-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--text-h);
+  transform: translateX(-101%);
+  transition: transform 340ms var(--ease-out);
+}
+
+.nav-link:hover::before,
+.nav-link:focus-visible::before {
+  transform: translateX(0);
+}
+
+.nav-link:hover,
+.nav-link:focus-visible {
+  color: var(--bg);
+}
+
+.nav-link.active {
+  color: var(--accent-text);
+  background: transparent;
+}
+
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  translate: 0 -50%;
+  width: 3px;
+  height: 60%;
+  background: var(--accent);
+}
+
+/* ---------- Buttons: sweep fill (Uiverse, 0xnihilism) ---------- */
+
+.primary-button {
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+  border: 1px solid var(--text-h);
+  border-radius: var(--r-md);
+  background: var(--text-h);
+  color: var(--bg);
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 13px;
+  box-shadow: none;
+  transition: color 300ms var(--ease), transform 180ms var(--ease-spring);
+}
+
+.primary-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  transform: translateY(101%);
+  transition: transform 360ms var(--ease-out);
+}
+
+.primary-button:hover:not(:disabled)::before {
+  transform: translateY(0);
+}
+
+.primary-button:hover:not(:disabled) {
+  color: var(--on-accent);
+  transform: translateY(-1px);
+}
+
+.primary-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+}
+
+.secondary-button {
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-h);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 12.5px;
+  transition: border-color 200ms var(--ease), background 200ms var(--ease);
+}
+
+.secondary-button:hover:not(:disabled) {
+  border-color: var(--text-h);
+  background: var(--accent-bg);
+}
+
+/* ---------- Icon button: bell shake (Uiverse, 3bdel3ziz-T) ---------- */
+
+.icon-button {
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  background: transparent;
+  transition: background 200ms var(--ease), border-color 200ms var(--ease);
+}
+
+.icon-button:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
+.icon-button:hover > svg {
+  animation: bell-shake 650ms var(--ease-out) both;
+}
+
+@keyframes bell-shake {
+  20% {
+    transform: rotate(14deg);
+  }
+  40% {
+    transform: rotate(-14deg) scale(1.08);
+  }
+  60% {
+    transform: rotate(9deg) scale(1.08);
+  }
+  80% {
+    transform: rotate(-8deg);
+  }
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* ---------- Cards: flat paper, rule-led, lift on hover ---------- */
+
+.stat-card,
+.project-card,
+.detail-card,
+.kanban-card,
+.milestone-card,
+.planner-card,
+.modal-card,
+.auth-card,
+.empty-state,
+.list-row,
+.meeting-row {
+  border-radius: var(--r-md);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.stat-card,
+.project-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 260ms var(--ease-out), border-color 260ms var(--ease);
+}
+
+/* A single accent rule across the top, drawn in on hover. */
+.stat-card::after,
+.project-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 380ms var(--ease-out);
+}
+
+.stat-card:hover::after,
+.project-card:hover::after {
+  transform: scaleX(1);
+}
+
+.stat-card:hover,
+.project-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--text-h);
+}
+
+.stat-icon,
+.project-card-icon,
+.list-row-icon,
+.meeting-row-icon,
+.sidebar-footer-icon {
+  border-radius: var(--r-sm);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* Oversized stat numerals - the dashboard's display moment. */
+.stat-card strong,
+.stat-card .stat-value {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(30px, 3.4vw, 44px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--text-h);
+}
+
+/* ---------- Blur-bloom behind the modal (Uiverse, 05akalan57) ---------- */
+
+.modal-overlay {
+  background: rgba(22, 19, 15, 0.46);
+  backdrop-filter: blur(3px);
+}
+
+.modal-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-card::before {
+  content: "";
+  position: absolute;
+  width: 60%;
+  aspect-ratio: 1;
+  left: -18%;
+  top: -34%;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.16;
+  filter: blur(54px);
+}
+
+.modal-header,
+.modal-body {
+  position: relative;
+  z-index: 1;
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--rule);
+}
+
+/* ---------- Badges: flat, lettered ---------- */
+
+.badge {
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  font-size: 10.5px;
+  box-shadow: none;
+}
+
+/* ---------- Inputs ---------- */
+
+.input-with-icon,
+.planner-form input,
+.planner-form textarea,
+.planner-card input,
+.planner-card select,
+.planner-card textarea {
+  border-radius: var(--r-sm);
+  background: var(--surface-raised);
+  border-color: var(--border);
+}
+
+.input-with-icon:focus-within {
+  border-color: var(--text-h);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+/* ---------- Tabs: underline, not pill ---------- */
+
+.tabs {
+  border-bottom: 1px solid var(--rule);
+  gap: 4px;
+}
+
+.tab {
+  position: relative;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.tab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 260ms var(--ease-out);
+}
+
+.tab.active {
+  color: var(--text-h);
+  background: transparent;
+}
+
+.tab.active::after,
+.tab:hover::after {
+  transform: scaleX(1);
+}
+
+/* ---------- Progress ---------- */
+
+.progress-track {
+  border-radius: 1px;
+  height: 5px;
+  background: var(--code-bg);
+}
+
+.progress-value {
+  border-radius: 1px;
+  background: var(--accent);
+}
+
+/* ---------- Avatars ---------- */
+
+.user-avatar,
+.profile-avatar,
+.brand-icon {
+  border-radius: var(--r-sm);
+  background: var(--text-h);
+  color: var(--bg);
+  font-family: var(--display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Loader: running conic border (Uiverse, 0senno) ---------- */
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from var(--angle),
+    transparent 0deg,
+    var(--accent) 320deg,
+    transparent 360deg
+  );
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 0);
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 3px),
+    #000 0
+  );
+  animation: angle-spin 900ms linear infinite;
+}
+
+@keyframes angle-spin {
+  to {
+    --angle: 360deg;
+  }
+}
+
+.skeleton {
+  border-radius: var(--r-sm);
+  background: linear-gradient(
+    90deg,
+    var(--code-bg) 25%,
+    var(--border) 50%,
+    var(--code-bg) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* ---------- Auth: editorial split ---------- */
+
+.auth-decoration {
+  background: var(--inv-bg);
+  color: var(--inv-muted);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-decoration h1 {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(40px, 5vw, 76px);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--inv-fg);
+}
+
+.auth-decoration .brand-icon.large {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Replace the floating circles with hard accent blocks. */
+.decoration-circle,
+.circle-one,
+.circle-two,
+.welcome-decoration {
+  border-radius: 0;
+  background: var(--accent);
+  opacity: 0.14;
+  filter: none;
+}
+
+.auth-feature {
+  border: 0;
+  border-top: 1px solid var(--inv-rule);
+  border-radius: 0;
+  background: transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.auth-form-side::before {
+  content: none;
+}
+
+.auth-card {
+  border-radius: var(--r-lg);
+}
+
+/* ---------- Empty state ---------- */
+
+.empty-state {
+  border-style: dashed;
+  border-color: var(--rule);
+  background: transparent;
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+
+  .nav-link::before,
+  .primary-button::before,
+  .stat-card::after,
+  .project-card::after,
+  .tab::after {
+    transition: none;
+  }
+
+  .icon-button:hover > svg {
+    animation: none;
+  }
+}
