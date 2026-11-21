@@ -68,6 +68,11 @@ async function analyzeMeetingWithAI(meeting) {
       throw new HttpError("AI analysis timed out. Please try again.", 504);
     }
 
+    // Log where we tried and why it failed (e.g. ECONNREFUSED = nothing
+    // listening, ENOTFOUND = bad hostname) so the server logs show the cause.
+    console.error(
+      `AI service unreachable at ${AI_SERVICE_URL}: ${error.code || error.message}`
+    );
     throw new HttpError("Unable to connect to the AI service.", 503);
   }
 }

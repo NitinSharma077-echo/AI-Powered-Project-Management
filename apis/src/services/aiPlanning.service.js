@@ -54,6 +54,9 @@ async function generatePlanWithAI({
       throw new HttpError("AI plan generation timed out. Please try again.", 504);
     }
 
+    console.error(
+      `AI service unreachable at ${AI_SERVICE_URL}: ${error.code || error.message}`
+    );
     throw new HttpError("Unable to connect to the AI service.", 503);
   }
 }
