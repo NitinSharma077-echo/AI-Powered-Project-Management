@@ -13,6 +13,7 @@ import {
 
 import { useAuth } from "../context/AuthContext";
 import { useParallax, useReveal } from "../hooks/useReveal";
+import Logo from "../components/Logo";
 
 const SERVICES = [
   {
@@ -76,7 +77,7 @@ export default function Landing() {
     <div className="landing">
       <header className="lp-header">
         <Link to="/" className="lp-brand">
-          <span className="lp-brand-mark">M</span>
+          <Logo size="sm" />
           MeetFlow
         </Link>
 

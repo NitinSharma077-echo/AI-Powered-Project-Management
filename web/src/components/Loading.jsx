@@ -1,3 +1,5 @@
+import Logo from "./Logo";
+
 // Skeleton placeholders shaped like the page that is loading, so content
 // slides into place instead of replacing a spinner.
 
@@ -130,7 +132,7 @@ export default function Loading({ text = "Loading…", variant = "list" }) {
 export function BootScreen({ text = "Signing you in…" }) {
   return (
     <div className="boot-screen" role="status" aria-live="polite">
-      <div className="boot-mark">M</div>
+      <Logo size="xl" className="boot-logo" />
       <div className="boot-bar">
         <span />
       </div>

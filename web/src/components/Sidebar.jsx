@@ -13,6 +13,7 @@ import {
 
 import { useAuth } from "../context/AuthContext";
 import { initialsOf } from "../utils/format";
+import Logo from "./Logo";
 
 const sections = [
   {
@@ -44,7 +45,7 @@ export default function Sidebar({ collapsed, mobileOpen, onClose, onToggle }) {
         aria-label="Main navigation"
       >
         <div className="sidebar-brand">
-          <div className="brand-icon">M</div>
+          <Logo />
 
           <div className="sidebar-brand-text">
             <strong>

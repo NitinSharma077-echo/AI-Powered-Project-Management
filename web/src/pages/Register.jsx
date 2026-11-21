@@ -4,6 +4,7 @@ import { LockKeyhole, Mail, User, ArrowRight } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
 import { getErrorMessage } from "../services/api";
+import Logo from "../components/Logo";
 
 export default function Register() {
   const { register, isAuthenticated } = useAuth();
@@ -50,7 +51,7 @@ export default function Register() {
     <div className="auth-page">
       <div className="auth-decoration">
         <div className="auth-decoration-content">
-          <div className="brand-icon large">M</div>
+          <Logo size="lg" />
 
           <h1>
             Start running
@@ -78,7 +79,7 @@ export default function Register() {
       <div className="auth-form-side">
         <form className="auth-card" onSubmit={handleSubmit}>
           <div className="auth-mobile-brand">
-            <div className="brand-icon">M</div>
+            <Logo />
             <strong>MeetFlow AI</strong>
           </div>
 

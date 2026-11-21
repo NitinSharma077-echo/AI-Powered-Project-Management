@@ -30,10 +30,13 @@ function errorhandler(err, req, res, next){
       console.error(err);
     }
 
+    // HttpError messages are written for users (e.g. "Unable to connect to
+    // the AI service."), so show them even for 5xx. Unexpected errors keep
+    // the generic text so internals never leak.
+    const expose = err.name === "HttpError" || statusCode < 500;
+
     return res.status(statusCode).json({
-    error: statusCode >= 500
-      ? "Internal server error"
-      : err.message
+    error: expose ? err.message : "Internal server error"
   });
 }
 

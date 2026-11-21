@@ -33,9 +33,19 @@ class AIServiceError(Exception):
 
 
 def normalize_text(text: str) -> str:
-    """Normalize whitespace and casing for evidence checks."""
+    """Normalize casing, quotes, punctuation and whitespace for evidence checks."""
 
-    return re.sub(r"\s+", " ", text).strip().casefold()
+    text = (text or "").casefold()
+    text = text.translate(str.maketrans("‘’“”–—", "''\"\"--"))
+    text = re.sub(r"[^\w\s]", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def is_supported(evidence: str, normalized_source: str) -> bool:
+    """True when the quoted evidence appears in the (normalized) transcript."""
+
+    quote = normalize_text(evidence)
+    return bool(quote) and quote in normalized_source
 
 
 def build_meeting_prompt(meeting: MeetingAnalysisRequest) -> str:
@@ -192,20 +202,19 @@ async def analyze_meeting(
             "The AI response did not match the required schema."
         ) from error
 
-    # Check whether extracted evidence actually appears in the transcript.
+    # Keep only decisions and action items whose evidence really appears in
+    # the transcript. An unsupported item is dropped on its own; it no longer
+    # fails the whole analysis (models often quote with small differences).
     source_text = normalize_text(meeting.transcript)
 
-    for decision in result.decisions:
-        if normalize_text(decision.evidence) not in source_text:
-            raise AIServiceError(
-                "A decision contained evidence not found in the transcript."
-            )
-
-    for item in result.action_items:
-        if normalize_text(item.evidence) not in source_text:
-            raise AIServiceError(
-                "An action item contained evidence not found in the transcript."
-            )
+    result.decisions = [
+        decision for decision in result.decisions
+        if is_supported(decision.evidence, source_text)
+    ]
+    result.action_items = [
+        item for item in result.action_items
+        if is_supported(item.evidence, source_text)
+    ]
 
     return result
 
