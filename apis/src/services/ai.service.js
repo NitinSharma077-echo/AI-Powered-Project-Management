@@ -2,9 +2,9 @@ const axios = require("axios");
 
 const HttpError = require("../utils/httpError");
 
-const AI_SERVICE_URL = (
-  process.env.AI_SERVICE_URL || "http://localhost:8000"
-).replace(/\/$/, "");
+const { resolveAiServiceUrl } = require("../utils/aiServiceUrl");
+
+const AI_SERVICE_URL = resolveAiServiceUrl();
 
 // Notes plus any points added after the meeting, so the analysis covers
 // everything that was recorded, not just what was typed in the room.
