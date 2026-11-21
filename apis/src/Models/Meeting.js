@@ -41,6 +41,24 @@ const meetingSchema = new mongoose.Schema(
       default: ""
     },
 
+    // Points added after the meeting ("I forgot to mention..."). Kept
+    // separate from the original notes so the record of what was said in
+    // the room stays intact, but included when the meeting is analyzed.
+    followUps: [
+      {
+        text: {
+          type: String,
+          required: true,
+          trim: true,
+          maxlength: 5000
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ],
+
     // The users who attended the meeting.
     participants: [
       {

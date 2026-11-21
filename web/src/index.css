@@ -118,62 +118,6 @@ code {
   background: var(--code-bg);
 }
 
-.planner-form,
-.generated-plan {
-  background: var(--surface-raised);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
-  margin-top: 20px;
-}
-
-.planner-form,
-.planner-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.planner-form textarea,
-.planner-card textarea,
-.planner-card input,
-.planner-card select,
-.planner-form input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font: inherit;
-}
-
-.planner-card {
-  padding: 18px;
-  margin: 14px 0;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-
-.plan-heading,
-.task-card-heading,
-.approval-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.plan-heading span {
-  font-size: 12px;
-  padding: 6px 10px;
-  background: #fef3c7;
-  border-radius: 20px;
-}
-
-.approval-actions {
-  justify-content: flex-end;
-  margin-top: 24px;
-}
-
 .error-message {
   color: #b91c1c;
   margin: 14px 0;
@@ -184,13 +128,6 @@ code {
   margin: 14px 0;
 }
 
-.planner-form button,
-.approval-actions button {
-  padding: 11px 16px;
-  border: 0;
-  border-radius: 8px;
-  cursor: pointer;
-}
 
 
 /* Project analytics */

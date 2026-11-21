@@ -123,3 +123,60 @@ export async function getAllActionItems() {
 
   return results.flat();
 }
+
+// ---------- Editing ----------
+
+export async function updateProject(projectId, payload) {
+  const { data } = await api.patch(`/projects/${projectId}`, payload);
+  return data;
+}
+
+export async function deleteProject(projectId) {
+  await api.delete(`/projects/${projectId}`);
+}
+
+export async function updateMeeting(meetingId, payload) {
+  const { data } = await api.patch(`/meetings/${meetingId}`, payload);
+  return data.data;
+}
+
+export async function deleteMeeting(meetingId) {
+  await api.delete(`/meetings/${meetingId}`);
+}
+
+// Points remembered after the meeting ended.
+export async function addFollowUp(meetingId, text) {
+  const { data } = await api.post(`/meetings/${meetingId}/follow-ups`, { text });
+  return data.data;
+}
+
+export async function removeFollowUp(meetingId, followUpId) {
+  const { data } = await api.delete(
+    `/meetings/${meetingId}/follow-ups/${followUpId}`
+  );
+  return data.data;
+}
+
+export async function updateDecision(meetingId, decisionId, payload) {
+  const { data } = await api.patch(
+    `/meetings/${meetingId}/decisions/${decisionId}`,
+    payload
+  );
+  return data.data;
+}
+
+export async function deleteDecision(meetingId, decisionId) {
+  await api.delete(`/meetings/${meetingId}/decisions/${decisionId}`);
+}
+
+export async function updateActionItem(meetingId, actionItemId, payload) {
+  const { data } = await api.patch(
+    `/meetings/${meetingId}/action-items/${actionItemId}`,
+    payload
+  );
+  return data.data;
+}
+
+export async function deleteActionItem(meetingId, actionItemId) {
+  await api.delete(`/meetings/${meetingId}/action-items/${actionItemId}`);
+}

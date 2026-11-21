@@ -44,16 +44,6 @@
   flex-wrap: wrap;
 }
 
-.page-header button,
-.page-header .secondary-button {
-  padding: 10px 16px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-h);
-  cursor: pointer;
-  font-size: 14px;
-}
 
 /* ---------- Layout shell ---------- */
 
@@ -1934,4 +1924,265 @@ select:focus-visible {
 .list-row-info strong,
 .project-card h3 {
   overflow-wrap: anywhere;
+}
+
+/* ---------- AI project planner ---------- */
+
+.project-plan-page .alert {
+  margin-bottom: 20px;
+}
+
+.plan-saved {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.plan-saved .text-link {
+  margin-left: auto;
+}
+
+.plan-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.plan-summary-head h2 {
+  margin: 0;
+}
+
+.plan-summary > p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-h);
+}
+
+.plan-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 18px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md, 10px);
+  overflow: hidden;
+}
+
+.plan-stat {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 8px;
+  padding: 12px 14px;
+  background: var(--surface-raised);
+}
+
+.plan-stat svg {
+  color: var(--accent);
+  grid-row: span 2;
+}
+
+.plan-stat strong {
+  font-size: 18px;
+  color: var(--text-h);
+  font-variant-numeric: tabular-nums;
+}
+
+.plan-stat span {
+  font-size: 12px;
+  color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .plan-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.plan-finish {
+  margin-top: 12px;
+}
+
+.plan-warning {
+  color: #e5484d;
+  font-weight: 600;
+}
+
+.plan-review .section-heading {
+  margin-top: 28px;
+}
+
+.plan-empty {
+  margin-bottom: 8px;
+}
+
+.plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.plan-item {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md, 12px);
+  background: var(--surface-raised);
+  transition: border-color 200ms var(--ease);
+}
+
+.plan-item:focus-within {
+  border-color: var(--accent-border);
+}
+
+.plan-item-invalid {
+  border-color: rgba(229, 72, 77, 0.5);
+}
+
+.plan-item-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.plan-item-head .icon-button {
+  margin-left: auto;
+}
+
+.plan-ref {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  padding: 2px 8px;
+  border-radius: var(--r-sm, 4px);
+  background: var(--code-bg);
+}
+
+.plan-item-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.plan-span-2 {
+  grid-column: span 3;
+}
+
+.plan-span-full {
+  grid-column: 1 / -1;
+}
+
+.plan-item-grid textarea {
+  min-height: 64px;
+}
+
+@media (max-width: 720px) {
+  .plan-item-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .plan-span-2 {
+    grid-column: 1 / -1;
+  }
+}
+
+.plan-group + .plan-group {
+  margin-top: 20px;
+}
+
+.plan-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.plan-group-head h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.plan-group-head span {
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.plan-dependency {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.plan-dependency svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.plan-notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.plan-notes .detail-card {
+  margin-bottom: 0;
+}
+
+.plan-notes ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-h);
+}
+
+.plan-notes li + li {
+  margin-top: 6px;
+}
+
+@media (max-width: 720px) {
+  .plan-notes {
+    grid-template-columns: 1fr;
+  }
+}
+
+.plan-note-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.plan-note-title svg {
+  color: var(--accent);
+}
+
+.plan-approval {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.plan-approval .form-actions {
+  margin-top: 0;
 }

@@ -1,10 +1,18 @@
 const axios = require("axios");
 
+const HttpError = require("../utils/httpError");
+
 const AI_SERVICE_URL = (
   process.env.AI_SERVICE_URL || "http://localhost:8000"
 ).replace(/\/$/, "");
 
-async function generatePlanWithAI({ projectTitle, projectBrief, targetDate }) {
+async function generatePlanWithAI({
+  projectTitle,
+  projectBrief,
+  targetDate,
+  source = "brief",
+  documentName = null,
+}) {
   try {
     const response = await axios.post(
       `${AI_SERVICE_URL}/api/v1/plans/generate`,
@@ -12,6 +20,8 @@ async function generatePlanWithAI({ projectTitle, projectBrief, targetDate }) {
         project_title: projectTitle,
         project_brief: projectBrief,
         target_date: targetDate || null,
+        source,
+        document_name: documentName,
       },
       {
         headers: {
@@ -27,18 +37,24 @@ async function generatePlanWithAI({ projectTitle, projectBrief, targetDate }) {
     if (error.response) {
       const detail = error.response.data?.detail;
 
-      throw new Error(
+      const upstream = error.response.status;
+
+      // Surface the AI service's reason to the client instead of letting it
+      // collapse into a generic 500: bad input stays a 400, anything else is
+      // an upstream failure (502).
+      throw new HttpError(
         typeof detail === "string"
           ? detail
-          : `AI service returned status ${error.response.status}.`
+          : `AI service returned status ${upstream}.`,
+        upstream === 400 || upstream === 422 ? 400 : 502
       );
     }
 
     if (error.code === "ECONNABORTED") {
-      throw new Error("AI plan generation timed out.");
+      throw new HttpError("AI plan generation timed out. Please try again.", 504);
     }
 
-    throw new Error("Unable to connect to the AI service.");
+    throw new HttpError("Unable to connect to the AI service.", 503);
   }
 }
 

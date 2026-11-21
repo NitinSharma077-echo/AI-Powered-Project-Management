@@ -14,7 +14,12 @@ async function analyzeMeeting(req, res, next) {
       return res.status(404).json({ error: "Meeting not found" });
     }
 
-    if (!meeting.notes || meeting.notes.trim().length < 20) {
+    const recordedText = [
+      meeting.notes || "",
+      ...(meeting.followUps || []).map((item) => item.text)
+    ].join(" ").trim();
+
+    if (recordedText.length < 20) {
       return res.status(400).json({
         error: "Add at least 20 characters of meeting notes before analyzing."
       });

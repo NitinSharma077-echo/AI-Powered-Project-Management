@@ -39,7 +39,61 @@ async def generate_project_plan(
         else "Not specified"
     )
 
-    prompt = f"""
+    if request.source == "document":
+        prompt = build_document_prompt(request, target_date)
+    else:
+        prompt = build_brief_prompt(request, target_date)
+
+    return await request_plan(prompt)
+
+
+def build_document_prompt(request: PlanGenerationRequest, target_date: str) -> str:
+    name = request.document_name or "uploaded document"
+
+    return f"""
+You are an experienced project planning assistant.
+
+The text below was extracted from a project document ({name}).
+Convert the work items it describes into a structured project plan.
+
+PROJECT TITLE:
+{request.project_title}
+
+TARGET DATE:
+{target_date}
+
+DOCUMENT TEXT:
+\"\"\"
+{request.project_brief}
+\"\"\"
+
+RULES:
+1. Be faithful to the document. Every task must come from an item,
+   requirement or deliverable stated in the document. Do not invent
+   extra work. Merge exact duplicates.
+2. If the document groups items into phases, stages, sprints, sections
+   or milestones, use those groups as milestones, in document order,
+   with the document's own names.
+3. If the document has no grouping, create a small number of logical
+   milestones (in delivery order) and place every task in one.
+4. Keep the document's wording for titles where possible; keep titles
+   short (under 12 words) and put detail in the description.
+5. Use dates, owners' deadlines and estimates only when the document
+   states them. Otherwise use null. Use ISO dates YYYY-MM-DD.
+6. Use unique milestone references M1, M2, M3 and task references
+   T1, T2, T3. Use milestone_ref to link each task to its milestone.
+7. Create dependencies only when the document states or clearly implies
+   that one item must finish before another starts. Never circular.
+8. Do not invent people or assignees.
+9. List risks and open questions that the document raises or leaves
+   unanswered (missing dates, unclear scope).
+10. The summary must describe what the document covers in 1-3 sentences.
+11. Return only valid JSON matching the requested schema.
+"""
+
+
+def build_brief_prompt(request: PlanGenerationRequest, target_date: str) -> str:
+    return f"""
 You are an experienced project planning assistant.
 
 Create a realistic and actionable project plan.
@@ -73,6 +127,8 @@ If the brief does not contain enough information for a date,
 use null rather than guessing.
 """
 
+
+async def request_plan(prompt: str) -> ProjectPlanResponse:
     payload = {
         "model": OPENAI_MODEL,
         "messages": [

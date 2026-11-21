@@ -4,7 +4,9 @@ const router = express.Router({ mergeParams: true });
 
 const {
   createActionItem,
-  getActionItemsForMeeting
+  getActionItemsForMeeting,
+  updateActionItem,
+  deleteActionItem
 } = require("../services/actionItem.service");
 
 const {
@@ -77,6 +79,37 @@ router.patch("/:actionItemId/status", async (req, res, next) => {
     });
 
     res.status(200).json({ data: item });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PATCH /api/meetings/:meetingId/action-items/:actionItemId
+router.patch("/:actionItemId", async (req, res, next) => {
+  try {
+    const item = await updateActionItem({
+      ownerId: req.user._id,
+      meetingId: req.params.meetingId,
+      actionItemId: req.params.actionItemId,
+      updates: req.body
+    });
+
+    res.status(200).json({ data: item });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/meetings/:meetingId/action-items/:actionItemId
+router.delete("/:actionItemId", async (req, res, next) => {
+  try {
+    await deleteActionItem({
+      ownerId: req.user._id,
+      meetingId: req.params.meetingId,
+      actionItemId: req.params.actionItemId
+    });
+
+    res.status(200).json({ success: true });
   } catch (error) {
     next(error);
   }

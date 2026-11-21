@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
-
 import {
   FolderKanban,
   CalendarDays,
@@ -8,258 +7,258 @@ import {
   CheckCircle2,
   Plus,
   ArrowUpRight,
-  Sparkles,
+  ChevronRight,
+  AlertCircle,
+  Clock,
+  GitBranch,
+  Search,
 } from "lucide-react";
 
-import {
-  getProjects,
-  getMeetings,
-  getMeetingActionItems,
-} from "../services/meetingService";
-
-import { getErrorMessage } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import useWorkspaceData from "../hooks/useWorkspaceData";
+import { getErrorMessage } from "../services/api";
+import { formatDate, relativeDue, daysFromToday, greeting } from "../utils/format";
 
 import Loading from "../components/Loading";
 import EmptyState from "../components/EmptyState";
+import StatusBadge from "../components/StatusBadge";
+
+const isOpen = (item) => !["completed", "cancelled"].includes(item.status);
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { data, loading, error } = useWorkspaceData();
 
-  const [projects, setProjects] = useState([]);
-  const [meetings, setMeetings] = useState([]);
-  const [actions, setActions] = useState([]);
+  const view = useMemo(() => {
+    if (!data) return null;
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+    const open = data.actionItems.filter(isOpen);
+    const attention = open
+      .filter((item) => item.dueDate && daysFromToday(item.dueDate) <= 3)
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+      .slice(0, 5);
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
+    return {
+      open: open.length,
+      completed: data.actionItems.filter((i) => i.status === "completed").length,
+      overdue: open.filter((i) => i.dueDate && daysFromToday(i.dueDate) < 0).length,
+      pendingDecisions: data.decisions.filter((d) => d.status === "proposed"),
+      attention,
+    };
+  }, [data]);
 
-  async function loadDashboard() {
-    setLoading(true);
-    setError("");
-
-    try {
-      const [projectData, meetingData] = await Promise.all([
-        getProjects(),
-        getMeetings(),
-      ]);
-
-      setProjects(projectData);
-      setMeetings(meetingData);
-
-      // Retrieve action items for the user's meetings.
-      const actionResults = await Promise.all(
-        meetingData.map((meeting) =>
-          getMeetingActionItems(meeting._id).catch(() => [])
-        )
-      );
-
-      setActions(actionResults.flat());
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
+  if (loading && !data) {
+    return <Loading text="Loading your dashboard…" variant="dashboard" />;
   }
 
-  const completedActions = actions.filter(
-    (item) => item.status === "completed"
-  ).length;
-
-  const pendingActions = actions.filter(
-    (item) =>
-      item.status !== "completed" &&
-      item.status !== "cancelled"
-  ).length;
+  if (!data) {
+    return <div className="alert alert-error">{getErrorMessage(error)}</div>;
+  }
 
   const stats = [
-    {
-      title: "Total Projects",
-      value: projects.length,
-      icon: FolderKanban,
-      color: "purple",
-    },
-    {
-      title: "Total Meetings",
-      value: meetings.length,
-      icon: CalendarDays,
-      color: "blue",
-    },
-    {
-      title: "Pending Tasks",
-      value: pendingActions,
-      icon: ListTodo,
-      color: "orange",
-    },
-    {
-      title: "Completed Tasks",
-      value: completedActions,
-      icon: CheckCircle2,
-      color: "green",
-    },
+    { title: "Active projects", value: data.projects.filter((p) => p.status === "active").length, icon: FolderKanban, tone: "red", to: "/projects" },
+    { title: "Meetings", value: data.meetings.length, icon: CalendarDays, tone: "amber", to: "/meetings" },
+    { title: "Open action items", value: view.open, icon: ListTodo, tone: "blue", to: "/action-items", note: view.overdue ? `${view.overdue} overdue` : null },
+    { title: "Completed", value: view.completed, icon: CheckCircle2, tone: "green", to: "/action-items" },
   ];
 
-  if (loading) {
-    return <Loading text="Loading your dashboard..." />;
-  }
-
   return (
-    <div className="dashboard-page">
-      <div className="page-heading dashboard-heading">
-        <div>
-
+    <div className="page-stack">
+      <header className="page-header">
+        <div className="page-header-text">
+          <span className="eyebrow">
+            {new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}
+          </span>
           <h1>
-            Welcome back, {user?.name?.split(" ")[0] || "there"}!
+            {greeting()}, {user?.name?.split(" ")[0] || "there"}
           </h1>
-
-          <p>
-            Here's what's happening in your workspace.
-          </p>
+          <p>Here’s what’s happening across your workspace.</p>
         </div>
-
-        <Link to="/meetings" className="primary-button">
-          <Plus size={17} />
-          New meeting
-        </Link>
-      </div>
-
-      {error && (
-        <div className="alert alert-error">
-          {error}
+        <div className="page-actions">
+          <Link to="/meetings" className="primary-button">
+            <Plus size={17} />
+            New meeting
+          </Link>
         </div>
-      )}
+      </header>
+
+      {error && data && <div className="alert alert-error">{getErrorMessage(error)}</div>}
 
       <section className="stats-grid">
         {stats.map((stat) => {
           const Icon = stat.icon;
-
           return (
-            <div className="stat-card" key={stat.title}>
-              <div className={`stat-icon ${stat.color}`}>
-                <Icon size={21} />
-              </div>
-
+            <Link to={stat.to} className="stat-card is-link" key={stat.title}>
+              <span className={`stat-icon tone-${stat.tone}`}>
+                <Icon size={18} />
+              </span>
               <div>
                 <p>{stat.title}</p>
-                <h2>{stat.value}</h2>
+                <strong className="stat-value">{stat.value}</strong>
+                {stat.note && <small className="text-danger">{stat.note}</small>}
               </div>
-            </div>
+            </Link>
           );
         })}
       </section>
 
-      <section className="dashboard-welcome">
-        <div>
-          <div className="welcome-label">
-            <Sparkles size={16} />
-            MEETING INTELLIGENCE
+      <div className="two-col wide-left">
+        <section className="card">
+          <div className="card-head">
+            <div>
+              <h2>Needs attention</h2>
+              <p>Overdue or due in the next 3 days.</p>
+            </div>
+            <Link to="/action-items" className="text-link">
+              All action items
+              <ArrowUpRight size={14} />
+            </Link>
           </div>
 
-          <h2>Turn conversations into progress.</h2>
+          {view.attention.length === 0 && view.pendingDecisions.length === 0 ? (
+            <div className="inline-empty">
+              <CheckCircle2 size={18} />
+              Nothing urgent. You’re on top of things.
+            </div>
+          ) : (
+            <ul className="compact-list">
+              {view.attention.map((item) => {
+                const overdue = daysFromToday(item.dueDate) < 0;
+                return (
+                  <li key={item._id}>
+                    <Link to={`/meetings/${item.meetingId}?tab=actions`}>
+                      <span className={`compact-icon ${overdue ? "tone-red" : "tone-amber"}`}>
+                        {overdue ? <AlertCircle size={15} /> : <Clock size={15} />}
+                      </span>
+                      <span className="compact-text">
+                        <strong>{item.title}</strong>
+                        <small className={overdue ? "text-danger" : ""}>
+                          {relativeDue(item.dueDate)} · {item.meetingTitle}
+                        </small>
+                      </span>
+                      <StatusBadge status={item.priority} />
+                    </Link>
+                  </li>
+                );
+              })}
+              {view.pendingDecisions.slice(0, 3).map((decision) => (
+                <li key={decision._id}>
+                  <Link to={`/meetings/${decision.meetingId}?tab=decisions`}>
+                    <span className="compact-icon tone-blue">
+                      <GitBranch size={15} />
+                    </span>
+                    <span className="compact-text">
+                      <strong>{decision.title}</strong>
+                      <small>Decision awaiting approval · {decision.meetingTitle}</small>
+                    </span>
+                    <StatusBadge status="proposed" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
-          <p>
-            Analyze your meeting transcripts, capture decisions,
-            and track action items with AI assistance.
-          </p>
+        <section className="card">
+          <div className="card-head">
+            <div>
+              <h2>Quick actions</h2>
+              <p>Jump straight in.</p>
+            </div>
+          </div>
+          <div className="quick-actions">
+            <Link to="/meetings" className="quick-action">
+              <CalendarDays size={17} />
+              Record a meeting
+            </Link>
+            <Link to="/projects" className="quick-action">
+              <FolderKanban size={17} />
+              Start a project
+            </Link>
+            <Link to="/action-items" className="quick-action">
+              <ListTodo size={17} />
+              Review action items
+            </Link>
+            <button
+              type="button"
+              className="quick-action"
+              onClick={() =>
+                document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }))
+              }
+            >
+              <Search size={17} />
+              Search everything
+            </button>
+          </div>
+        </section>
+      </div>
 
-          <Link to="/meetings" className="welcome-link">
-            Explore meetings
-            <ArrowUpRight size={17} />
-          </Link>
-        </div>
-
-        <div className="welcome-decoration">
-          <div className="decoration-circle circle-one" />
-          <div className="decoration-circle circle-two" />
-          <Sparkles size={70} />
-        </div>
-      </section>
-
-      <section className="dashboard-section">
-        <div className="section-heading">
+      <section className="page-stack">
+        <div className="section-head">
           <div>
             <h2>Recent meetings</h2>
             <p>Your latest meeting activity.</p>
           </div>
-
           <Link to="/meetings" className="text-link">
             View all
-            <ArrowUpRight size={15} />
+            <ArrowUpRight size={14} />
           </Link>
         </div>
 
-        {meetings.length === 0 ? (
+        {data.meetings.length === 0 ? (
           <EmptyState
+            icon={CalendarDays}
             title="No meetings yet"
-            description="Create your first meeting to start using MeetFlow AI."
+            description="Create your first meeting to start capturing decisions and action items."
           />
         ) : (
-          <div className="meeting-list">
-            {meetings.slice(0, 5).map((meeting) => (
-              <Link
-                to={`/meetings/${meeting._id}`}
-                className="meeting-row"
-                key={meeting._id}
-              >
-                <div className="meeting-row-icon">
-                  <CalendarDays size={19} />
-                </div>
-
-                <div className="meeting-row-info">
+          <div className="list">
+            {data.meetings.slice(0, 4).map((meeting) => (
+              <Link to={`/meetings/${meeting._id}`} className="list-item is-link" key={meeting._id}>
+                <span className="list-item-icon">
+                  <CalendarDays size={16} />
+                </span>
+                <div className="list-item-body">
                   <strong>{meeting.title}</strong>
-
-                  <small>
-                    {meeting.meetingDate
-                      ? new Date(meeting.meetingDate).toLocaleDateString()
-                      : "Date not specified"}
-                  </small>
+                  <small>{formatDate(meeting.meetingDate)}</small>
                 </div>
-
-                <ArrowUpRight size={17} />
+                <ChevronRight size={18} className="list-item-chevron" />
               </Link>
             ))}
           </div>
         )}
       </section>
 
-      <section className="dashboard-section">
-        <div className="section-heading">
+      <section className="page-stack">
+        <div className="section-head">
           <div>
             <h2>Your projects</h2>
             <p>Projects in your workspace.</p>
           </div>
-
           <Link to="/projects" className="text-link">
             View all
-            <ArrowUpRight size={15} />
+            <ArrowUpRight size={14} />
           </Link>
         </div>
 
-        {projects.length === 0 ? (
+        {data.projects.length === 0 ? (
           <EmptyState
-            title="No projects created"
-            description="Create a project to organize your meetings."
+            icon={FolderKanban}
+            title="No projects yet"
+            description="Create a project to plan work and organize your meetings."
           />
         ) : (
-          <div className="project-grid">
-            {projects.slice(0, 4).map((project) => (
-              <Link
-                to="/projects"
-                className="project-card"
-                key={project._id}
-              >
-                <div className="project-card-icon">
-                  <FolderKanban size={20} />
+          <div className="card-grid">
+            {data.projects.slice(0, 3).map((project) => (
+              <Link to={`/projects/${project._id}`} className="project-card" key={project._id}>
+                <div className="project-card-top">
+                  <span className="project-card-icon">
+                    <FolderKanban size={18} />
+                  </span>
+                  <StatusBadge status={project.status} />
                 </div>
-
                 <h3>{project.name}</h3>
-
-                <p>
-                  {project.description || "No description provided."}
-                </p>
+                <p className="clamp-2">{project.description || "No description yet."}</p>
               </Link>
             ))}
           </div>

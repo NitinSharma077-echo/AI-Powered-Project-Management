@@ -1,217 +1,186 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, Plus, ArrowUpRight } from "lucide-react";
+import { CalendarDays, Plus, ChevronRight, Search, FolderKanban, FileText } from "lucide-react";
 
-import {
-  getMeetings,
-  createMeeting,
-  getProjects,
-} from "../services/meetingService";
+import { getMeetings, createMeeting, getProjects } from "../services/meetingService";
 import { getErrorMessage } from "../services/api";
+import { invalidateWorkspace } from "../hooks/useWorkspaceData";
+import { formatDate } from "../utils/format";
 
 import Loading from "../components/Loading";
 import EmptyState from "../components/EmptyState";
-import Modal from "../components/Modal";
-
-const emptyForm = {
-  title: "",
-  projectId: "",
-  meetingDate: "",
-  notes: "",
-};
+import { MeetingFormModal } from "../components/ItemForms";
 
 export default function Meetings() {
   const [meetings, setMeetings] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState(emptyForm);
-  const [saving, setSaving] = useState(false);
-  const [formError, setFormError] = useState("");
+
+  const [query, setQuery] = useState("");
+  const [projectFilter, setProjectFilter] = useState("all");
 
   useEffect(() => {
-    loadData();
+    let active = true;
+
+    Promise.all([getMeetings(), getProjects()])
+      .then(([meetingData, projectData]) => {
+        if (!active) return;
+        setMeetings(meetingData);
+        setProjects(projectData);
+      })
+      .catch((err) => active && setError(getErrorMessage(err)))
+      .finally(() => active && setLoading(false));
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  async function loadData() {
-    setLoading(true);
-    setError("");
+  const projectName = useMemo(
+    () => Object.fromEntries(projects.map((p) => [p._id, p.name])),
+    [projects]
+  );
 
-    try {
-      const [meetingData, projectData] = await Promise.all([
-        getMeetings(),
-        getProjects(),
-      ]);
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
 
-      setMeetings(meetingData);
-      setProjects(projectData);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }
+    return meetings.filter((meeting) => {
+      if (projectFilter === "none" && meeting.project) return false;
+      if (projectFilter !== "all" && projectFilter !== "none" && meeting.project !== projectFilter) {
+        return false;
+      }
+      if (!q) return true;
+      return [meeting.title, meeting.notes].some((field) => field?.toLowerCase().includes(q));
+    });
+  }, [meetings, query, projectFilter]);
 
-  function handleChange(event) {
-    setForm({ ...form, [event.target.name]: event.target.value });
-  }
-
-  async function handleCreate(event) {
-    event.preventDefault();
-    setFormError("");
-    setSaving(true);
-
-    try {
-      const meeting = await createMeeting({
-        title: form.title,
-        projectId: form.projectId || undefined,
-        meetingDate: form.meetingDate || undefined,
-        notes: form.notes,
-      });
-
-      setMeetings((prev) => [meeting, ...prev]);
-      setForm(emptyForm);
-      setShowModal(false);
-    } catch (err) {
-      setFormError(getErrorMessage(err));
-    } finally {
-      setSaving(false);
-    }
+  async function handleCreate(values) {
+    const meeting = await createMeeting(values);
+    setMeetings((prev) => [meeting, ...prev]);
+    invalidateWorkspace();
   }
 
   if (loading) {
-    return <Loading text="Loading meetings..." />;
+    return <Loading text="Loading meetings…" variant="list" />;
   }
 
   return (
-    <div className="meetings-page">
-      <div className="page-heading">
-        <div>
+    <div className="page-stack">
+      <header className="page-header">
+        <div className="page-header-text">
           <h1>Meetings</h1>
-          <p>All of your recorded meetings in one place.</p>
+          <p>Every meeting, its notes, decisions and follow-ups in one place.</p>
         </div>
-
-        <button
-          type="button"
-          className="primary-button"
-          onClick={() => setShowModal(true)}
-        >
-          <Plus size={17} />
-          New meeting
-        </button>
-      </div>
+        <div className="page-actions">
+          <button type="button" className="primary-button" onClick={() => setShowModal(true)}>
+            <Plus size={17} />
+            New meeting
+          </button>
+        </div>
+      </header>
 
       {error && <div className="alert alert-error">{error}</div>}
 
+      {meetings.length > 0 && (
+        <div className="toolbar">
+          <label className="search-field">
+            <Search size={16} />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search titles and notes…"
+              aria-label="Search meetings"
+            />
+          </label>
+          <select
+            className="select-compact"
+            value={projectFilter}
+            onChange={(event) => setProjectFilter(event.target.value)}
+            aria-label="Filter by project"
+          >
+            <option value="all">All projects</option>
+            <option value="none">No project</option>
+            {projects.map((project) => (
+              <option key={project._id} value={project._id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+          <span className="toolbar-count">
+            {visible.length} of {meetings.length}
+          </span>
+        </div>
+      )}
+
       {meetings.length === 0 ? (
         <EmptyState
+          icon={CalendarDays}
           title="No meetings yet"
-          description="Create your first meeting to start using MeetFlow AI."
+          description="Create a meeting, paste the notes, and let AI pull out decisions and action items."
+          action={
+            <button type="button" className="primary-button" onClick={() => setShowModal(true)}>
+              <Plus size={16} />
+              New meeting
+            </button>
+          }
+        />
+      ) : visible.length === 0 ? (
+        <EmptyState
+          icon={Search}
+          title="No matching meetings"
+          description="Try a different search or project filter."
         />
       ) : (
-        <div className="meeting-list">
-          {meetings.map((meeting) => (
-            <Link
-              to={`/meetings/${meeting._id}`}
-              className="meeting-row"
-              key={meeting._id}
-            >
-              <div className="meeting-row-icon">
-                <CalendarDays size={19} />
-              </div>
-
-              <div className="meeting-row-info">
-                <strong>{meeting.title}</strong>
+        <div className="list">
+          {visible.map((meeting) => (
+            <Link to={`/meetings/${meeting._id}`} className="list-item is-link" key={meeting._id}>
+              <span className="date-tile">
+                <strong>{meeting.meetingDate ? new Date(meeting.meetingDate).getDate() : "–"}</strong>
                 <small>
                   {meeting.meetingDate
-                    ? new Date(meeting.meetingDate).toLocaleDateString()
-                    : "Date not specified"}
+                    ? new Date(meeting.meetingDate).toLocaleDateString(undefined, { month: "short" })
+                    : ""}
+                </small>
+              </span>
+              <div className="list-item-body">
+                <strong>{meeting.title}</strong>
+                <p className="clamp-1">
+                  {meeting.notes ? meeting.notes : "No notes yet"}
+                </p>
+                <small className="meta-row">
+                  <span className="meta-item">
+                    <CalendarDays size={13} />
+                    {formatDate(meeting.meetingDate)}
+                  </span>
+                  {meeting.project && projectName[meeting.project] && (
+                    <span className="meta-item">
+                      <FolderKanban size={13} />
+                      {projectName[meeting.project]}
+                    </span>
+                  )}
+                  {meeting.followUps?.length > 0 && (
+                    <span className="meta-item">
+                      <FileText size={13} />
+                      {meeting.followUps.length} added later
+                    </span>
+                  )}
                 </small>
               </div>
-
-              <ArrowUpRight size={17} />
+              <ChevronRight size={18} className="list-item-chevron" />
             </Link>
           ))}
         </div>
       )}
 
       {showModal && (
-        <Modal title="New meeting" onClose={() => setShowModal(false)}>
-          <form className="form-grid" onSubmit={handleCreate}>
-            <label className="field-label">
-              Meeting title
-              <input
-                type="text"
-                name="title"
-                value={form.title}
-                onChange={handleChange}
-                required
-                maxLength={200}
-                placeholder="Weekly sync"
-              />
-            </label>
-
-            <div className="form-row">
-              <label className="field-label">
-                Project (optional)
-                <select
-                  name="projectId"
-                  value={form.projectId}
-                  onChange={handleChange}
-                >
-                  <option value="">No project</option>
-                  {projects.map((project) => (
-                    <option key={project._id} value={project._id}>
-                      {project.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="field-label">
-                Meeting date
-                <input
-                  type="date"
-                  name="meetingDate"
-                  value={form.meetingDate}
-                  onChange={handleChange}
-                />
-              </label>
-            </div>
-
-            <label className="field-label">
-              Notes / transcript
-              <textarea
-                name="notes"
-                value={form.notes}
-                onChange={handleChange}
-                placeholder="Paste meeting notes or transcript here. You can analyze these with AI later."
-              />
-            </label>
-
-            {formError && <div className="alert alert-error">{formError}</div>}
-
-            <div className="form-actions">
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                className="primary-button"
-                disabled={saving}
-              >
-                {saving ? "Creating..." : "Create meeting"}
-              </button>
-            </div>
-          </form>
-        </Modal>
+        <MeetingFormModal
+          projects={projects}
+          onSubmit={handleCreate}
+          onClose={() => setShowModal(false)}
+        />
       )}
     </div>
   );

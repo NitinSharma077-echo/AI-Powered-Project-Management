@@ -238,8 +238,9 @@
   margin: 0 0 28px;
   font-family: var(--display);
   font-weight: 900;
-  font-size: clamp(50px, 8.4vw, 132px);
-  line-height: 0.86;
+  /* Sized so the longest word ("themselves") fits the hero column. */
+  font-size: clamp(38px, 5.7vw, 100px);
+  line-height: 0.88;
   letter-spacing: -0.045em;
   text-transform: uppercase;
   color: var(--text-h);

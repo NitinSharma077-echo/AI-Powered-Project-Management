@@ -12,6 +12,7 @@ import Projects from "./pages/Projects";
 import ProjectDetails from "./pages/ProjectDetails";
 import ProjectPlan from "./pages/ProjectPlan";
 import ProjectAnalytics from "./pages/ProjectAnalytics";
+import ProjectRoadmap from "./pages/ProjectRoadmap";
 import Taskboard from "./pages/Taskboard";
 import Meetings from "./pages/Meetings";
 import MeetingDetails from "./pages/MeetingDetails";
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="/projects/:projectId/plan" element={<ProjectPlan />} />
             <Route path="/projects/:projectId/tasks" element={<Taskboard />} />
             <Route path="/projects/:projectId/analytics" element={<ProjectAnalytics />} />
+            <Route path="/projects/:projectId/roadmap" element={<ProjectRoadmap />} />
             <Route path="/meetings" element={<Meetings />} />
             <Route path="/meetings/:meetingId" element={<MeetingDetails />} />
             <Route path="/action-items" element={<ActionItems />} />

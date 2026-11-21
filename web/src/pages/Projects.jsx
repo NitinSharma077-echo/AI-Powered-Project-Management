@@ -1,110 +1,139 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { FolderKanban, Plus } from "lucide-react";
+import { FolderKanban, Plus, Search, ArrowUpRight } from "lucide-react";
 
 import { getProjects, createProject } from "../services/meetingService";
 import { getErrorMessage } from "../services/api";
+import { invalidateWorkspace } from "../hooks/useWorkspaceData";
+import { formatDate } from "../utils/format";
 
 import Loading from "../components/Loading";
 import EmptyState from "../components/EmptyState";
-import Modal from "../components/Modal";
 import StatusBadge from "../components/StatusBadge";
+import { ProjectFormModal } from "../components/ItemForms";
+
+const FILTERS = [
+  { id: "all", label: "All" },
+  { id: "active", label: "Active" },
+  { id: "completed", label: "Completed" },
+  { id: "archived", label: "Archived" },
+];
 
 export default function Projects() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: "", description: "" });
-  const [saving, setSaving] = useState(false);
-  const [formError, setFormError] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
-    loadProjects();
+    let active = true;
+
+    getProjects()
+      .then((data) => active && setProjects(data))
+      .catch((err) => active && setError(getErrorMessage(err)))
+      .finally(() => active && setLoading(false));
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  async function loadProjects() {
-    setLoading(true);
-    setError("");
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return projects.filter(
+      (project) =>
+        (filter === "all" || project.status === filter) &&
+        (!q || [project.name, project.description].some((f) => f?.toLowerCase().includes(q)))
+    );
+  }, [projects, filter, query]);
 
-    try {
-      const data = await getProjects();
-      setProjects(data);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function handleChange(event) {
-    setForm({ ...form, [event.target.name]: event.target.value });
-  }
-
-  async function handleCreate(event) {
-    event.preventDefault();
-    setFormError("");
-    setSaving(true);
-
-    try {
-      const project = await createProject(form);
-      setProjects((prev) => [project, ...prev]);
-      setForm({ name: "", description: "" });
-      setShowModal(false);
-    } catch (err) {
-      setFormError(getErrorMessage(err));
-    } finally {
-      setSaving(false);
-    }
+  async function handleCreate(values) {
+    const project = await createProject(values);
+    setProjects((prev) => [project, ...prev]);
+    invalidateWorkspace();
   }
 
   if (loading) {
-    return <Loading text="Loading projects..." />;
+    return <Loading text="Loading projects…" variant="grid" />;
   }
 
   return (
-    <div className="projects-page">
-      <div className="page-heading">
-        <div>
+    <div className="page-stack">
+      <header className="page-header">
+        <div className="page-header-text">
           <h1>Projects</h1>
-          <p>Organize your meetings by project.</p>
+          <p>Plan the work, link meetings and track progress milestone by milestone.</p>
         </div>
-
-        <button
-          type="button"
-          className="primary-button"
-          onClick={() => setShowModal(true)}
-        >
-          <Plus size={17} />
-          New project
-        </button>
-      </div>
+        <div className="page-actions">
+          <button type="button" className="primary-button" onClick={() => setShowModal(true)}>
+            <Plus size={17} />
+            New project
+          </button>
+        </div>
+      </header>
 
       {error && <div className="alert alert-error">{error}</div>}
 
+      {projects.length > 0 && (
+        <div className="toolbar">
+          <div className="segmented" role="tablist">
+            {FILTERS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={filter === item.id}
+                className={filter === item.id ? "active" : ""}
+                onClick={() => setFilter(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <label className="search-field">
+            <Search size={16} />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search projects…"
+              aria-label="Search projects"
+            />
+          </label>
+        </div>
+      )}
+
       {projects.length === 0 ? (
         <EmptyState
+          icon={FolderKanban}
           title="No projects yet"
-          description="Create a project to start organizing your meetings."
+          description="Create a project, then generate a plan from a brief or upload a document."
+          action={
+            <button type="button" className="primary-button" onClick={() => setShowModal(true)}>
+              <Plus size={16} />
+              New project
+            </button>
+          }
         />
+      ) : visible.length === 0 ? (
+        <EmptyState icon={Search} title="No matching projects" description="Try another filter." />
       ) : (
-        <div className="project-grid">
-          {projects.map((project) => (
-            <Link
-              to={`/projects/${project._id}`}
-              className="project-card"
-              key={project._id}
-            >
-              <div className="project-card-icon">
-                <FolderKanban size={20} />
-              </div>
-
-              <h3>{project.name}</h3>
-              <p>{project.description || "No description provided."}</p>
-
-              <div className="card-footer-meta">
+        <div className="card-grid">
+          {visible.map((project) => (
+            <Link to={`/projects/${project._id}`} className="project-card" key={project._id}>
+              <div className="project-card-top">
+                <span className="project-card-icon">
+                  <FolderKanban size={18} />
+                </span>
                 <StatusBadge status={project.status} />
+              </div>
+              <h3>{project.name}</h3>
+              <p className="clamp-2">{project.description || "No description yet."}</p>
+              <div className="project-card-foot">
+                <span>Created {formatDate(project.createdAt)}</span>
+                <ArrowUpRight size={16} />
               </div>
             </Link>
           ))}
@@ -112,52 +141,7 @@ export default function Projects() {
       )}
 
       {showModal && (
-        <Modal title="New project" onClose={() => setShowModal(false)}>
-          <form className="form-grid" onSubmit={handleCreate}>
-            <label className="field-label">
-              Project name
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                required
-                maxLength={120}
-                placeholder="Website redesign"
-              />
-            </label>
-
-            <label className="field-label">
-              Description
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="What is this project about?"
-              />
-            </label>
-
-            {formError && <div className="alert alert-error">{formError}</div>}
-
-            <div className="form-actions">
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                className="primary-button"
-                disabled={saving}
-              >
-                {saving ? "Creating..." : "Create project"}
-              </button>
-            </div>
-          </form>
-        </Modal>
+        <ProjectFormModal onSubmit={handleCreate} onClose={() => setShowModal(false)} />
       )}
     </div>
   );

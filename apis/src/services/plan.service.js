@@ -8,6 +8,25 @@ const Dependency = require("../Models/Dependency");
 
 const HttpError = require("../utils/httpError");
 
+const DEFAULT_MILESTONE_DAYS = 30;
+
+// Use the milestone's own date; else the latest due date of its tasks;
+// else a default horizon from today. The user can change it afterwards.
+function resolveMilestoneDueDate(milestone, tasks = []) {
+  if (milestone.due_date) return milestone.due_date;
+
+  const taskDates = tasks
+    .filter((task) => task.milestone_ref === milestone.ref && task.due_date)
+    .map((task) => String(task.due_date))
+    .sort();
+
+  if (taskDates.length > 0) return taskDates[taskDates.length - 1];
+
+  const fallback = new Date();
+  fallback.setDate(fallback.getDate() + DEFAULT_MILESTONE_DAYS);
+  return fallback;
+}
+
 async function approveProjectPlan({ ownerId, projectId, plan }) {
   if (!plan || !Array.isArray(plan.tasks) || plan.tasks.length === 0) {
     throw new HttpError("The plan must contain at least one task.", 400);
@@ -20,13 +39,16 @@ async function approveProjectPlan({ ownerId, projectId, plan }) {
   try {
     const milestoneIdByRef = {};
 
-    for (const milestone of plan.milestones || []) {
+    for (const [index, milestone] of (plan.milestones || []).entries()) {
       const created = await createMilestone({
         ownerId,
         projectId,
         title: milestone.title,
         description: milestone.description,
-        dueDate: milestone.due_date,
+        // Milestones require a due date, but AI plans (especially ones read
+        // from documents) often leave it blank.
+        dueDate: resolveMilestoneDueDate(milestone, plan.tasks),
+        order: index,
       });
 
       createdMilestoneIds.push(created._id);

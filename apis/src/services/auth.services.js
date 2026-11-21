@@ -5,17 +5,23 @@ const HttpError = require('../utils/httpError');
 
 // Function to authenticate a user and generate a JWT token
 
-const generateToken = (user) => {
+// "Keep me signed in" issues a long-lived token so the browser can restore
+// the session on its next visit; otherwise the session lasts one working day.
+// Both lifetimes can be overridden from the environment.
+const REMEMBER_TTL = process.env.JWT_REMEMBER_EXPIRES_IN || '30d';
+const SESSION_TTL = process.env.JWT_EXPIRES_IN || '1d';
+
+const generateToken = (user, remember = false) => {
   return jwt.sign(
     {
       sub: user._id.toString()
     },
     process.env.JWT_SECRET,
-    { expiresIn: '1h' }
+    { expiresIn: remember ? REMEMBER_TTL : SESSION_TTL }
   );
 };
 
-const registerUser = async ({ name, email, password }) => {
+const registerUser = async ({ name, email, password, remember = true }) => {
   if (!name || !email || !password) {
     throw new HttpError('Name, email, and password are required', 400);
   }
@@ -33,11 +39,11 @@ const registerUser = async ({ name, email, password }) => {
     passwordHash,
     role: 'user'
   });
-  const token = generateToken(newUser);
+  const token = generateToken(newUser, Boolean(remember));
   return { user: newUser, token };
 };
 
-const loginUser = async ({ email, password }) => {
+const loginUser = async ({ email, password, remember = false }) => {
   if (!email || !password) {
     throw new HttpError('Email and password are required', 400);
   }
@@ -49,7 +55,7 @@ const loginUser = async ({ email, password }) => {
   if (!isMatch) {
     throw new HttpError('Invalid email or password', 401);
   }
-  const token = generateToken(foundUser);
+  const token = generateToken(foundUser, Boolean(remember));
   return { user: foundUser, token };
 };
 

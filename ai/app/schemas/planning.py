@@ -7,8 +7,13 @@ from pydantic import BaseModel, Field
 
 class PlanGenerationRequest(BaseModel):
     project_title: str = Field(min_length=2, max_length=200)
-    project_brief: str = Field(min_length=20, max_length=20000)
+    # Documents can be longer than a typed brief; the API caps each mode.
+    project_brief: str = Field(min_length=20, max_length=60000)
     target_date: Optional[date] = None
+    # "brief": plan from a description. "document": extract the items an
+    # uploaded document already lists, keeping its own structure.
+    source: Literal["brief", "document"] = "brief"
+    document_name: Optional[str] = Field(default=None, max_length=255)
 
 
 class PlannedMilestone(BaseModel):

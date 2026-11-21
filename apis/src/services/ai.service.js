@@ -1,8 +1,26 @@
 const axios = require("axios");
 
+const HttpError = require("../utils/httpError");
+
 const AI_SERVICE_URL = (
   process.env.AI_SERVICE_URL || "http://localhost:8000"
 ).replace(/\/$/, "");
+
+// Notes plus any points added after the meeting, so the analysis covers
+// everything that was recorded, not just what was typed in the room.
+function buildTranscript(meeting) {
+  const followUps = (meeting.followUps || []).filter((item) => item.text);
+
+  if (followUps.length === 0) {
+    return meeting.notes;
+  }
+
+  const added = followUps
+    .map((item) => `- ${item.text}`)
+    .join("\n");
+
+  return `${meeting.notes || ""}\n\nPoints added after the meeting:\n${added}`.trim();
+}
 
 async function analyzeMeetingWithAI(meeting) {
   try {
@@ -11,7 +29,7 @@ async function analyzeMeetingWithAI(meeting) {
       {
         meeting_id: meeting._id.toString(),
         title: meeting.title,
-        transcript: meeting.notes,
+        transcript: buildTranscript(meeting),
         meeting_date: meeting.meetingDate
           ? meeting.meetingDate.toISOString().slice(0, 10)
           : null,
@@ -33,18 +51,24 @@ async function analyzeMeetingWithAI(meeting) {
     if (error.response) {
       const detail = error.response.data?.detail;
 
-      throw new Error(
+      const upstream = error.response.status;
+
+      // Surface the AI service's reason to the client instead of letting it
+      // collapse into a generic 500: bad input stays a 400, anything else is
+      // an upstream failure (502).
+      throw new HttpError(
         typeof detail === "string"
           ? detail
-          : `AI service returned status ${error.response.status}.`
+          : `AI service returned status ${upstream}.`,
+        upstream === 400 || upstream === 422 ? 400 : 502
       );
     }
 
     if (error.code === "ECONNABORTED") {
-      throw new Error("AI analysis timed out.");
+      throw new HttpError("AI analysis timed out. Please try again.", 504);
     }
 
-    throw new Error("Unable to connect to the AI service.");
+    throw new HttpError("Unable to connect to the AI service.", 503);
   }
 }
 
